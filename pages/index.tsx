@@ -1,7 +1,7 @@
 import { Container, TextField } from "@mui/material";
 import axios from "axios";
 import Head from "next/head";
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import CardData from "../components/Home/CardData";
 import ProductCard from "../components/Home/ProductCard";
 
@@ -21,25 +21,43 @@ interface IndexProps {
 
 export default function Index({ products }: IndexProps): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<Product[]>(products);
+  const [mixProducts, setMixProducts] = useState(products);
+  const [searchResults, setSearchResults] = useState<Product[]>(mixProducts);
+const [refresh, setRefresh] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   console.log("searchTerm", searchTerm);
+
+  //pushing cart items to the mixProducts array
+
+  const notIncluededInCart = mixProducts.filter((product) => {
+    const exist = cartItems.find((item) => item._id === product._id);
+    return !exist;
+  });
+
+  useEffect(() => {
+    setMixProducts([...cartItems, ...notIncluededInCart ]);
+    //new array of cart ids
+    console.log(mixProducts);
+    setSearchResults(mixProducts);
+  }, [cartItems, refresh]);
+  
+  console.log("cartItems", cartItems);
+
   const handleSearch = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "Enter") {
-      setSearchResults(products);
+      setSearchResults(mixProducts);
       return;
     } else if (searchTerm.length < 3 && e.key === "Enter") {
-      setSearchResults(products);
+      setSearchResults(mixProducts);
       return;
     } else {
-      const filteredResults = products.filter((product) =>
+      const filteredResults = mixProducts.filter((product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
       setSearchResults(filteredResults);
     }
   };
-
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const addToCart = (
     _id: string,
@@ -53,6 +71,7 @@ export default function Index({ products }: IndexProps): JSX.Element {
         item._id === _id ? { ...item, quantity: item.quantity + 1 } : item
       );
       setCartItems(updatedItems);
+      setRefresh(!refresh);
     } else {
       const newItem: CartItem = {
         _id,
@@ -62,7 +81,9 @@ export default function Index({ products }: IndexProps): JSX.Element {
         imageURL: image, // Provide the imageURL here
       };
       setCartItems([...cartItems, newItem]);
+      setRefresh(!refresh);
     }
+      setRefresh(!refresh);
   };
 
   //do infinite scroll
@@ -77,6 +98,52 @@ export default function Index({ products }: IndexProps): JSX.Element {
       setVisibleItems((prevVisibleItems) => prevVisibleItems + 5);
     }
   };
+
+  const increaseQuantity = (_id: string) => {
+   
+    const updatedCartItems = cartItems.map((item) => {
+      if (item._id === _id) {
+        return {
+          ...item,
+          quantity: item.quantity + 1,
+        };
+      }
+      
+      return item;
+    });
+    setCartItems(updatedCartItems);
+    setRefresh(!refresh);
+  };
+  console.log("cartItems", cartItems);
+
+  // Function to decrease quantity
+  const decreaseQuantity = (_id: string) => {
+    
+    const exist = cartItems.find((item) => item._id === _id);
+    if (exist && exist.quantity > 1) {
+      const updatedCartItems = cartItems.map((item) => {
+        if (item._id === _id && item.quantity > 1) {
+          return {
+            ...item,
+            quantity: item.quantity - 1,
+          };
+        }
+        // if (item._id === _id && item.quantity ===1 ) {
+        //   return item._id !== _id;
+        // }
+        setRefresh(!refresh);
+        return item;
+      });
+      setCartItems(updatedCartItems);
+      setRefresh(!refresh);
+    } else {
+      const updatedCartItems = cartItems.filter((item) => item._id !== _id);
+      setCartItems(updatedCartItems);
+      setRefresh(!refresh);
+    }
+    setRefresh(!refresh);
+  };
+
   console.log("searchResults", searchResults);
 
   return (
@@ -113,6 +180,9 @@ export default function Index({ products }: IndexProps): JSX.Element {
                       data={data}
                       addToCart={addToCart}
                       cartItems={cartItems}
+                      refresh={setRefresh}
+                      increaseQuantity={increaseQuantity}
+                      decreaseQuantity={decreaseQuantity}
                     />
                   </div>
                 ))}
@@ -120,7 +190,12 @@ export default function Index({ products }: IndexProps): JSX.Element {
             </div>
 
             <div className="">
-              <CardData cartItems={cartItems} setCartItems={setCartItems} />
+              <CardData
+                cartItems={cartItems}
+                setCartItems={setCartItems}
+                increaseQuantity={increaseQuantity}
+                decreaseQuantity={decreaseQuantity}
+              />
             </div>
           </div>
         </Container>

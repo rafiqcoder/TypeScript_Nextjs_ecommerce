@@ -2,13 +2,11 @@ import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket";
 import { useEffect, useState } from "react";
 
 import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { Button, IconButton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
-import { count } from "console";
 
 interface CartItem {
   _id: string;
@@ -25,12 +23,16 @@ interface CardDataProps {
   decreaseQuantity: (id: string) => void;
 }
 
-export default function CardData({ cartItems, setCartItems,increaseQuantity,
-decreaseQuantity }: CardDataProps) {
+export default function CardData({
+  cartItems,
+  setCartItems,
+  increaseQuantity,
+  decreaseQuantity,
+}: CardDataProps) {
   const [counterBar, setCounterBar] = useState(null);
   const vat = 0.18;
   const shippingcost = 0;
-
+  const [previousOrderNo, setPreviousOrderNo] = useState(null);
   const currentDate = new Date();
   const dayOfWeek = currentDate.getDay();
 
@@ -53,9 +55,7 @@ decreaseQuantity }: CardDataProps) {
 
   // Function to increase quantity
 
-
   //remove from cart
- 
 
   // Calculate the total price of all items in the cart
   useEffect(() => {
@@ -74,8 +74,22 @@ decreaseQuantity }: CardDataProps) {
     const formattedTotalPrice = totalPrice.toFixed(2);
     setTotalCost(parseFloat(formattedTotalPrice));
   };
+
+  // useEffect(() => {
+  //   fetch("http://18.228.225.59:3000/orders")
+  //     .then((res) => res.json())
+  //     .then((res) => {
+  //       setPreviousOrderNo(res.value);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // }, []);
+
+  const handlePlaceOrder = () => {};
+
   // console.log('counterBar',counterBar);
-  
+
   // console.log("cartItems",cartItems)
   return (
     <div>
@@ -84,7 +98,7 @@ decreaseQuantity }: CardDataProps) {
       <div className="  mt-5 max-h-[500px] overflow-auto md:py-4">
         {cartItems?.length > 0 ? (
           cartItems?.length > 0 &&
-          cartItems?.map((data, index:any) => {
+          cartItems?.map((data, index: any) => {
             return (
               <div
                 className={` ${
@@ -206,6 +220,7 @@ decreaseQuantity }: CardDataProps) {
             <Button
               variant="contained"
               className="text-black bg-primary hover:bg-orange-600 capitalize w-full lg:py-3 lg:text-xl"
+              onClick={handlePlaceOrder}
             >
               Place&nbsp;Order
             </Button>
