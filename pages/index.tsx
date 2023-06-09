@@ -1,11 +1,9 @@
-import { useState, ChangeEvent } from "react";
-import Head from "next/head";
-import Image from "next/image";
-import { IconButton, TextField } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import ProductCard from "../components/Home/ProductCard";
-import CardData from "../components/Home/CardData";
+import { Container, TextField } from "@mui/material";
 import axios from "axios";
+import Head from "next/head";
+import { KeyboardEvent, useState } from "react";
+import CardData from "../components/Home/CardData";
+import ProductCard from "../components/Home/ProductCard";
 
 interface Product {
   _id: string;
@@ -21,26 +19,34 @@ interface IndexProps {
   products: Product[];
 }
 
-
-
 export default function Index({ products }: IndexProps): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>(products);
+  console.log("searchTerm", searchTerm);
+  const handleSearch = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Enter") {
+      setSearchResults(products);
+      return;
+    } else if (searchTerm.length < 3 && e.key === "Enter") {
+      setSearchResults(products);
+      return;
+    } else {
+      const filteredResults = products.filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
-  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
-
-    const filteredResults = products.filter((product) =>
-      product.name.toLowerCase().includes(term.toLowerCase())
-    );
-
-    setSearchResults(filteredResults);
+      setSearchResults(filteredResults);
+    }
   };
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (_id: string, name: string, price: number,image:string) => {
+  const addToCart = (
+    _id: string,
+    name: string,
+    price: number,
+    image: string
+  ) => {
     const existingItem = cartItems.find((item) => item._id === _id);
     if (existingItem) {
       const updatedItems = cartItems.map((item) =>
@@ -59,22 +65,19 @@ export default function Index({ products }: IndexProps): JSX.Element {
     }
   };
 
-
   //do infinite scroll
   const [visibleItems, setVisibleItems] = useState(5);
   const [scrollPosition, setScrollPosition] = useState(0);
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
-  
+
     if (scrollTop + clientHeight === scrollHeight) {
       // User has scrolled to the bottom
       setScrollPosition(scrollTop);
       setVisibleItems((prevVisibleItems) => prevVisibleItems + 5);
     }
   };
-  
-
-
+  console.log("searchResults", searchResults);
 
   return (
     <>
@@ -82,8 +85,8 @@ export default function Index({ products }: IndexProps): JSX.Element {
         <title>Buy Products</title>
       </Head>
 
-      <div className="bg-[#F7F7F9]">
-        <div className="container-sk min-h-screen flex justify-center items-center">
+      <div className="bg-[#F7F7F9] ">
+        <Container className="container max-w-[1024px] mx-auto min-h-screen flex justify-center items-center">
           <div className="grid md:grid-cols-2 gap-4 lg:gap-16 grid-cols-1 lg:p-20 md:p-10 p-5 bg-[#F7F7F9] w-full">
             <div className="">
               <h1 className="lg:text-2xl md:text-xl text-lg font-bold">
@@ -96,7 +99,8 @@ export default function Index({ products }: IndexProps): JSX.Element {
                 fullWidth
                 placeholder="search here"
                 value={searchTerm}
-                onChange={handleSearch}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => handleSearch(e)}
               ></TextField>
 
               <div
@@ -105,7 +109,11 @@ export default function Index({ products }: IndexProps): JSX.Element {
               >
                 {searchResults?.slice(0, visibleItems).map((data) => (
                   <div className="" key={data._id}>
-                    <ProductCard data={data} addToCart={addToCart} />
+                    <ProductCard
+                      data={data}
+                      addToCart={addToCart}
+                      cartItems={cartItems}
+                    />
                   </div>
                 ))}
               </div>
@@ -115,7 +123,7 @@ export default function Index({ products }: IndexProps): JSX.Element {
               <CardData cartItems={cartItems} setCartItems={setCartItems} />
             </div>
           </div>
-        </div>
+        </Container>
       </div>
     </>
   );

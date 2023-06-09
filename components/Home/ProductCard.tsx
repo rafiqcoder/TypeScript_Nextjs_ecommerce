@@ -10,10 +10,16 @@ interface ProductCardProps {
     name: string;
     price: number;
   };
-  addToCart: (id: string, name: string, price: number,image:string) => void;
+  addToCart: (id: string, name: string, price: number, image: string) => void;
+  cartItems: {[key: string]: any}[];
+
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ data, addToCart }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  data,
+  addToCart,
+  cartItems
+}) => {
   return (
     <div className="grid grid-cols-4 items-center gap-2 bg-white   p-2">
       <Image
@@ -35,7 +41,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ data, addToCart }) => {
       <div className="flex justify-end ">
         <IconButton
           className="w-8 h-8 lg:w-16 lg:h-16 bg-primary hover:bg-orange-500 duration-300"
-          onClick={() => addToCart(data._id, data?.name, data?.price,data?.imageURL)}
+          onClick={() =>
+            addToCart(data._id, data?.name, data?.price, data?.imageURL)
+          }
         >
           <AddIcon className="lg:text-4xl text-white" />
         </IconButton>

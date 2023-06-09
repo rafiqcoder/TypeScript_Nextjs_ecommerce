@@ -5,9 +5,10 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { Button } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
+import { count } from "console";
 
 interface CartItem {
   _id: string;
@@ -20,9 +21,13 @@ interface CartItem {
 interface CardDataProps {
   cartItems: CartItem[];
   setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
+  increaseQuantity: (id: string) => void;
+  decreaseQuantity: (id: string) => void;
 }
 
-export default function CardData({ cartItems, setCartItems }: CardDataProps) {
+export default function CardData({ cartItems, setCartItems,increaseQuantity,
+decreaseQuantity }: CardDataProps) {
+  const [counterBar, setCounterBar] = useState(null);
   const vat = 0.18;
   const shippingcost = 0;
 
@@ -47,38 +52,10 @@ export default function CardData({ cartItems, setCartItems }: CardDataProps) {
   const formattedDate = `${deliveryDay}/${deliveryMonth}/${deliveryYear}`;
 
   // Function to increase quantity
-  const increaseQuantity = (_id: string) => {
-    const updatedCartItems = cartItems.map((item) => {
-      if (item._id === _id) {
-        return {
-          ...item,
-          quantity: item.quantity + 1,
-        };
-      }
-      return item;
-    });
-    setCartItems(updatedCartItems);
-  };
 
-  // Function to decrease quantity
-  const decreaseQuantity = (_id: string) => {
-    const updatedCartItems = cartItems.map((item) => {
-      if (item._id === _id && item.quantity > 1) {
-        return {
-          ...item,
-          quantity: item.quantity - 1,
-        };
-      }
-      return item;
-    });
-    setCartItems(updatedCartItems);
-  };
 
   //remove from cart
-  const deleteCartItem = (_id: string) => {
-    const updatedCartItems = cartItems.filter((item) => item._id !== _id);
-    setCartItems(updatedCartItems);
-  };
+ 
 
   // Calculate the total price of all items in the cart
   useEffect(() => {
@@ -97,19 +74,22 @@ export default function CardData({ cartItems, setCartItems }: CardDataProps) {
     const formattedTotalPrice = totalPrice.toFixed(2);
     setTotalCost(parseFloat(formattedTotalPrice));
   };
-
+  // console.log('counterBar',counterBar);
+  
   // console.log("cartItems",cartItems)
   return (
     <div>
       <h4 className="lg:text-2xl md:text-xl text-lg font-bold">Cart</h4>
 
-      <div className="px-2 bg-white mt-5 max-h-[500px] overflow-auto md:py-5">
+      <div className="  mt-5 max-h-[500px] overflow-auto md:py-4">
         {cartItems?.length > 0 ? (
           cartItems?.length > 0 &&
-          cartItems?.map((data, index) => {
+          cartItems?.map((data, index:any) => {
             return (
               <div
-                className="grid grid-cols-4 items-center gap-2 bg-white    p-2"
+                className={` ${
+                  counterBar !== index ? "grid grid-cols-4" : "grid grid-cols-3"
+                } items-center gap-2 bg-white mb-2 p-2 relative`}
                 key={index}
               >
                 <Image
@@ -122,42 +102,50 @@ export default function CardData({ cartItems, setCartItems }: CardDataProps) {
                   className="h-12 w-12 lg:h-24 lg:w-24 object-contain"
                 />
 
-                <div className="col-span-2 flex flex-col gap-1">
-                  <p className="lg:text-xl text-sm md:text-lg font-bold break-all ">
-                    {data?.name}
-                  </p>
-                  <p className="lg:text-xl text-lg font-bold text-secundary mt-1">
+                <div className="col-span-2 flex flex-col sm:gap-5">
+                  <p className=" text-sm md:text-lg ">{data?.name}</p>
+                  <p className="lg:text-lg text-lg font-bold text-secundary mt-1">
                     ${data?.price}
                   </p>
                 </div>
-                <div className="flex justify-end">
-                  <div className="flex gap-2 md:flex-row flex-col items-end md:items-center">
-                    <div className="flex flex-row items-center gap-2 bg-primary p-1 md:p-3">
-                      <RemoveIcon
-                        className="cursor-pointer text-white md:text-base text-sm"
-                        onClick={() => {
-                          decreaseQuantity(data?._id);
-                        }}
-                      />
-
-                      <span className="text-white md:text-base text-sm min-w-[20px]">
-                        {data?.quantity}
-                      </span>
-                      <AddIcon
-                        className="cursor-pointer text-white md:text-base text-sm"
-                        onClick={() => {
-                          increaseQuantity(data?._id);
-                        }}
-                      />
-                    </div>
-                    <DeleteIcon
-                      className="text-red-700 cursor-pointer"
+                {counterBar !== index && (
+                  <div className="flex justify-end ">
+                    <IconButton
+                      className="w-8 h-8 lg:w-12 lg:h-12 bg-primary hover:bg-orange-500 duration-300"
                       onClick={() => {
-                        deleteCartItem(data?._id);
+                        setCounterBar(index);
                       }}
-                    />
+                    >
+                      <AddIcon className="lg:text-4xl text-white" />
+                    </IconButton>
                   </div>
-                </div>
+                )}
+
+                {counterBar === index && (
+                  <div className="absolute bg-[#fff] bg-opacity-70 w-full h-full ">
+                    <div className="flex h-full justify-end items-center mr-2">
+                      <div className="flex gap-2 md:flex-row flex-col items-end md:items-center">
+                        <div className="flex flex-row items-center gap-2 bg-[#FF8000] p-1 px-3 rounded">
+                          <RemoveIcon
+                            className="cursor-pointer text-white  text-sm md:text-3xl font-bold m-2"
+                            onClick={() => {
+                              decreaseQuantity(data?._id);
+                            }}
+                          />
+                          <span className="text-white md:text-base text-sm min-w-[20px] m-2 mx-5  mr-4">
+                            {data?.quantity}
+                          </span>
+                          <AddIcon
+                            className="cursor-pointer text-white md:text-3xl text-sm m-2"
+                            onClick={() => {
+                              increaseQuantity(data?._id);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })
@@ -207,7 +195,6 @@ export default function CardData({ cartItems, setCartItems }: CardDataProps) {
         {cartItems?.length < 1 ? (
           <div className=" cursor-not-allowed ">
             <Button
-            
               variant="contained"
               className="border-2 border-t-2  border-[#DDDDDD] rounded-md text-[#C1C1C1]  w-full lg:py-3 lg:text-xl uppercase shadow-sm hover:bg-gray-100"
             >
